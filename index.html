@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quiz Time!!</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #3a2414;
+      background-color: #fff4d6;
+      background-image:
+        url("data:image/svg+xml,%3Csvg width='76' height='76' viewBox='0 0 76 76' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.24'%3E%3Cpath d='M38 6 70 38 38 70 6 38z' fill='%23f3c343'/%3E%3Cpath d='M38 13 63 38 38 63 13 38z' fill='%2387b84f'/%3E%3Cpath d='M38 13v50M13 38h50M24 24l28 28M52 24 24 52' stroke='%23fff7dc' stroke-width='3'/%3E%3C/g%3E%3C/svg%3E"),
+        radial-gradient(circle at top left, rgba(204, 31, 43, 0.18), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(0, 65, 152, 0.16), transparent 34%);
+      background-size: 110px 110px, auto, auto;
+      text-align: center;
+      padding: 32px 16px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 253, 246, 0.96);
+      max-width: 560px;
+      margin: auto;
+      padding: 28px;
+      border: 4px solid #f3c343;
+      border-radius: 22px;
+      box-shadow: 0 16px 38px rgba(61, 36, 10, 0.22);
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+      font-size: clamp(30px, 7vw, 44px);
+      line-height: 1.05;
+    }
+
+    .flag {
+      position: relative;
+      width: 112px;
+      height: 56px;
+      margin: 18px auto 6px;
+      overflow: hidden;
+      border: 3px solid #fff0b8;
+      border-radius: 8px;
+      background: repeating-linear-gradient(
+        to bottom,
+        #cc1f2f 0 4px,
+        #cc1f2f 4px 8px,
+        #fff 8px 12px,
+        #fff 12px 16px
+      );
+      box-shadow: 0 8px 18px rgba(81, 46, 11, 0.18);
+    }
+
+    .flag::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 54px;
+      height: 32px;
+      background: #004198;
+    }
+
+    .flag::after {
+      content: "☾ ✦";
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      color: #ffd45a;
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: -2px;
+    }
+
+    h2 {
+      margin: 12px 0;
+      font-size: clamp(22px, 5vw, 28px);
+    }
+
+    h3 {
+      margin: 8px 0;
+      color: #0c6b4f;
+      font-size: 22px;
+    }
+
+    p {
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .result-img,
+    .destination-img {
+      display: block;
+      width: min(100%, 360px);
+      margin: 12px auto 18px;
+      border: 3px solid #fff0b8;
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(81, 46, 11, 0.18);
+    }
+
+    .result-img,
+    .destination-img {
+      aspect-ratio: 4 / 3;
+      object-fit: contain;
+      background: #fff8df;
+    }
+
+    .result-gallery {
+      display: grid;
+      gap: 16px;
+      margin: 14px 0 18px;
+    }
+
+    .result-gallery img {
+      width: 100%;
+      margin: 0;
+    }
+
+    .answer-grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ffd45a, #ffb22e);
+      color: #3a2414;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #c87900;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #ffe08a, #ffbd46);
+      transform: translateY(-1px);
+      box-shadow: 0 5px 0 #c87900;
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #c87900;
+    }
+
+    button.selected {
+      outline: 4px solid #0c6b4f;
+      background: linear-gradient(135deg, #ffeaa8, #f3c343);
+    }
+
+    button.secondary {
+      background: #fff8df;
+      border: 2px solid #f0bf36;
+      box-shadow: none;
+    }
+
+    button.secondary:hover {
+      background: #fff0b8;
+      box-shadow: none;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .nav-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    input {
+      width: 100%;
+      margin: 10px 0;
+      padding: 14px;
+      border: 2px solid #f0bf36;
+      border-radius: 14px;
+      font-size: 16px;
+      text-align: center;
+      background: #fffaf0;
+    }
+
+    .question-count {
+      display: inline-block;
+      margin: 0 0 4px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #0c6b4f;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #d62828;
+      min-height: 22px;
+      margin: 8px 0 0;
+      font-weight: bold;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        padding: 22px 16px;
+      }
+
+      .nav-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="flag" aria-label="Malaysian flag"></div>
+  <h1>Quiz Time!!</h1>
+  <div id="quiz"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    section: "Fruit match",
+    q: "Your friends would describe you as...",
+    answers: [
+      ["Bold and adventurous", "durian", null],
+      ["Calm and thoughtful", "mangosteen", null],
+      ["Friendly and outgoing", "rambutan", null],
+      ["Unique and independent", "cempedak", null]
+    ]
+  },
+  {
+    section: "Fruit match",
+    q: "Which snack would you try first?",
+    answers: [
+      ["Something strong and famous", "durian", null],
+      ["Something sweet and elegant", "mangosteen", null],
+      ["Something fun to peel and share", "rambutan", null],
+      ["Something local and unexpected", "cempedak", null]
+    ]
+  },
+  {
+    section: "Fruit match",
+    q: "What motivates you most?",
+    answers: [
+      ["New experiences", "durian", null],
+      ["Personal growth", "mangosteen", null],
+      ["Friendships", "rambutan", null],
+      ["Being different", "cempedak", null]
+    ]
+  },
+  {
+    section: "Fruit match",
+    q: "At a party, where would we find you?",
+    answers: [
+      ["Trying the strongest food first", "durian", null],
+      ["Having deep conversations", "mangosteen", null],
+      ["Talking to everyone", "rambutan", null],
+      ["Noticing things others missed", "cempedak", null]
+    ]
+  },
+  {
+    section: "Fruit match",
+    q: "Pick a flavour mood.",
+    answers: [
+      ["Rich, creamy, and unforgettable", "durian", null],
+      ["Sweet, juicy, and gentle", "mangosteen", null],
+      ["Fresh, playful, and light", "rambutan", null],
+      ["Sweet, fragrant, and different", "cempedak", null]
+    ]
+  },
+  {
+    section: "Fruit match",
+    q: "What kind of person are you when plans change?",
+    answers: [
+      ["Excited, because surprises are fun", "durian", null],
+      ["Patient, because everything has a reason", "mangosteen", null],
+      ["Flexible, as long as everyone is together", "rambutan", null],
+      ["Curious, because hidden gems appear that way", "cempedak", null]
+    ]
+  },
+  {
+    section: "Destination match",
+    q: "When you visit Malaysia, you usually look for...",
+    answers: [
+      ["Beaches, islands, and local traditions", null, "terengganu"],
+      ["Mountains, forests, and big open skies", null, "kotaKinabalu"],
+      ["Old streets, art, and famous food", null, "penang"],
+      ["City lights, shopping, and energy", null, "kualaLumpur"]
+    ]
+  },
+  {
+    section: "Destination match",
+    q: "Your ideal travel day feels like...",
+    answers: [
+      ["A peaceful coastal escape", null, "terengganu"],
+      ["A challenge that becomes a story", null, "kotaKinabalu"],
+      ["A slow food walk with history", null, "penang"],
+      ["A packed day with many things to see", null, "kualaLumpur"]
+    ]
+  },
+  {
+    section: "Destination match",
+    q: "What kind of scenery makes you happiest?",
+    answers: [
+      ["Clear blue water and quiet beaches", null, "terengganu"],
+      ["Mountains, forests, and fresh air", null, "kotaKinabalu"],
+      ["Colourful heritage streets", null, "penang"],
+      ["Tall buildings and night views", null, "kualaLumpur"]
+    ]
+  },
+  {
+    section: "Destination match",
+    q: "People enjoy travelling with you because you are...",
+    answers: [
+      ["The one who finds peaceful local spots", null, "terengganu"],
+      ["The brave one who says yes first", null, "kotaKinabalu"],
+      ["The one who finds the best food", null, "penang"],
+      ["The one who keeps everyone excited", null, "kualaLumpur"]
+    ]
+  },
+  {
+    section: "Destination match",
+    q: "Which activity would you choose?",
+    answers: [
+      ["Visit islands and try keropok lekor", null, "terengganu"],
+      ["Explore nature and see Mount Kinabalu", null, "kotaKinabalu"],
+      ["Eat street food and see heritage buildings", null, "penang"],
+      ["Visit towers, malls, and busy markets", null, "kualaLumpur"]
+    ]
+  },
+  {
+    section: "Destination match",
+    q: "What travel vibe fits you best?",
+    answers: [
+      ["Cultural, sunny, and close to the sea", null, "terengganu"],
+      ["Wild, active, and full of nature", null, "kotaKinabalu"],
+      ["Creative, tasty, and nostalgic", null, "penang"],
+      ["Modern, fast, and exciting", null, "kualaLumpur"]
+    ]
+  }
+];
+
+const results = {
+  durian: {
+    name: "Durian",
+    title: "The Adventurer",
+    desc: "You are bold, brave, and not afraid to try something new.",
+    fruitDesc: "Durian is one of Malaysia's most famous fruits. It has a strong smell, a spiky shell, and soft golden flesh inside.",
+    taste: "It tastes rich, creamy, sweet, and a little savoury. Some people love it immediately, and some people need courage for the first bite.",
+    image: "Picture/Durian.png"
+  },
+  mangosteen: {
+    name: "Mangosteen",
+    title: "The Wise One",
+    desc: "You are calm, thoughtful, and quietly elegant.",
+    fruitDesc: "Mangosteen is a purple fruit with soft white segments inside. It is often called the queen of fruits.",
+    taste: "It tastes sweet, juicy, gentle, and slightly tangy, like a calm tropical treat.",
+    image: "Picture/Manggis.png"
+  },
+  rambutan: {
+    name: "Rambutan",
+    title: "The Social Butterfly",
+    desc: "You are friendly, fun, and bring people together.",
+    fruitDesc: "Rambutan is a small red fruit with soft hair-like spikes outside and juicy flesh inside.",
+    taste: "It tastes sweet, fresh, and lightly floral, similar to lychee but with its own playful Malaysian character.",
+    image: "Picture/Rambutan.png"
+  },
+  cempedak: {
+    name: "Cempedak",
+    title: "The Hidden Gem",
+    desc: "You are unique, creative, and full of surprises.",
+    fruitDesc: "Cempedak is related to jackfruit and is loved in Malaysia, especially when fried as a snack.",
+    taste: "It tastes sweet, fragrant, soft, and custardy, with a warm tropical flavour.",
+    image: "Picture/Cempedak.png"
+  }
+};
+
+const destinations = {
+  kotaKinabalu: {
+    name: "Kota Kinabalu",
+    desc: "Kota Kinabalu is the capital of Sabah and a great match for nature lovers. You can see Mount Kinabalu, islands, markets, and beautiful sunsets.",
+    vibe: "It feels adventurous, outdoorsy, and refreshing, perfect for travellers who like mountains, sea, and big views.",
+    image: "Picture/Kota Kinabalu.png"
+  },
+  kualaLumpur: {
+    name: "Kuala Lumpur",
+    desc: "Kuala Lumpur is Malaysia's busy capital city, known for the Petronas Twin Towers, shopping, food, and nightlife.",
+    vibe: "It feels modern, energetic, and exciting, perfect for travellers who enjoy city adventures.",
+    image: "Picture/Kuala Lumpur.png"
+  },
+  penang: {
+    name: "Penang",
+    desc: "Penang is famous for heritage streets, street art, multicultural history, and some of Malaysia's best food.",
+    vibe: "It feels creative, nostalgic, and delicious, perfect for travellers who love culture and food hunting.",
+    image: "Picture/Penang.png"
+  },
+  langkawi: {
+    name: "Langkawi",
+    desc: "Langkawi is an island destination with beaches, waterfalls, cable car views, and relaxing resort vibes.",
+    vibe: "It feels peaceful, sunny, and easy-going, perfect for travellers who want to slow down.",
+    image: "Picture/Langkawi.png"
+  },
+  terengganu: {
+    name: "Terengganu",
+    desc: "Terengganu is known for beautiful beaches, islands, batik, traditional crafts, mosques, and local food like keropok lekor.",
+    vibe: "It feels calm, cultural, and close to nature, perfect for travellers who want sea views and authentic local charm.",
+    image: "Picture/Terengganu.png"
+  }
+};
+
+let currentQuestion = 0;
+let playerName = "";
+let selectedAnswers = [];
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxl81M6Gng2NufRgW1_hwoQbH7xG8PmmyP3mmIbXhdQSkbtsLgLC53uNg5MDpgxKo2k/exec";
+
+function showStart() {
+  document.getElementById("quiz").innerHTML = `
+    <h2>Fill in your name first</h2>
+    <input id="nameInput" type="text" placeholder="Your name" autocomplete="name">
+    <button onclick="startQuiz()">Start Quiz</button>
+    <p id="nameError" class="error"></p>
+  `;
+}
+
+function startQuiz() {
+  const nameInput = document.getElementById("nameInput");
+  const nameError = document.getElementById("nameError");
+  const name = nameInput.value.trim();
+
+  if (!name) {
+    nameError.innerText = "Please fill in your name first.";
+    nameInput.focus();
+    return;
+  }
+
+  playerName = name;
+  showQuestion();
+}
+
+function showQuestion() {
+  const quiz = document.getElementById("quiz");
+  const question = questions[currentQuestion];
+  const selectedAnswer = selectedAnswers[currentQuestion];
+
+  quiz.innerHTML = `
+    <span class="question-count">${question.section} · Question ${currentQuestion + 1} of ${questions.length}</span>
+    <h2>${question.q}</h2>
+    <div class="answer-grid" id="answers"></div>
+    <p id="answerError" class="error"></p>
+    <div class="nav-row">
+      <button class="secondary" onclick="goBack()" ${currentQuestion === 0 ? "disabled" : ""}>&lt; Back</button>
+      <button onclick="goNext()">${currentQuestion === questions.length - 1 ? "See Result" : "Next"} &gt;</button>
+    </div>
+  `;
+
+  question.answers.forEach((answer, index) => {
+    const btn = document.createElement("button");
+    btn.innerText = `${String.fromCharCode(65 + index)}. ${answer[0]}`;
+    btn.className = selectedAnswer === index ? "selected" : "";
+    btn.onclick = () => selectAnswer(index);
+    document.getElementById("answers").appendChild(btn);
+  });
+}
+
+function selectAnswer(answerIndex) {
+  selectedAnswers[currentQuestion] = answerIndex;
+  showQuestion();
+}
+
+function goBack() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    showQuestion();
+  }
+}
+
+function goNext() {
+  const answerError = document.getElementById("answerError");
+
+  if (selectedAnswers[currentQuestion] === undefined) {
+    answerError.innerText = "Please choose an answer first.";
+    return;
+  }
+
+  currentQuestion++;
+
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  const fruitScores = {
+    durian: 0,
+    mangosteen: 0,
+    rambutan: 0,
+    cempedak: 0
+  };
+  const destinationScores = {
+    kotaKinabalu: 0,
+    kualaLumpur: 0,
+    penang: 0,
+    terengganu: 0
+  };
+
+  selectedAnswers.forEach((answerIndex, questionIndex) => {
+    const answer = questions[questionIndex].answers[answerIndex];
+    if (answer[1]) {
+      fruitScores[answer[1]] += 1;
+    }
+    if (answer[2]) {
+      destinationScores[answer[2]] += 1;
+    }
+  });
+
+  let topFruit = Object.keys(fruitScores).reduce((a, b) =>
+    fruitScores[a] > fruitScores[b] ? a : b
+  );
+  let topDestination = Object.keys(destinationScores).reduce((a, b) =>
+    destinationScores[a] > destinationScores[b] ? a : b
+  );
+
+  const result = results[topFruit];
+  const destination = destinations[topDestination];
+
+  document.getElementById("quiz").innerHTML = `
+    <div class="result-gallery">
+      <img class="result-img" src="${result.image}" alt="${result.name} result picture">
+      <img class="destination-img" src="${destination.image}" alt="${destination.name} destination picture">
+    </div>
+    <h2>${playerName}, you should try ${result.name}!</h2>
+    <h3>${result.title}</h3>
+    <p>${result.desc}</p>
+    <p><strong>About the fruit:</strong> ${result.fruitDesc}</p>
+    <p><strong>How it tastes:</strong> ${result.taste}</p>
+    <h3>Your Malaysia destination match is ${destination.name}.</h3>
+    <p><strong>About the destination:</strong> ${destination.desc}</p>
+    <p><strong>Travel vibe:</strong> ${destination.vibe}</p>
+    <p id="saveStatus" class="sr-only" aria-live="polite">Saving result...</p>
+    <button onclick="location.reload()">Try Again</button>
+  `;
+
+  submitResult(topFruit, result, topDestination, destination);
+}
+
+function submitResult(fruit, result, destinationKey, destination) {
+  const saveStatus = document.getElementById("saveStatus");
+
+  if (!GOOGLE_SCRIPT_URL) {
+    saveStatus.innerText = "Google Sheet link is missing.";
+    return;
+  }
+
+  const formData = new URLSearchParams();
+  formData.append("submitted_at", new Date().toISOString());
+  formData.append("name", playerName);
+  formData.append("fruit_result", result.name);
+  formData.append("destination_result", destination.name);
+
+  selectedAnswers.forEach((answerIndex, questionIndex) => {
+    const questionNumber = questionIndex + 1;
+    const answer = questions[questionIndex].answers[answerIndex];
+    formData.append(`q${questionNumber}`, `${String.fromCharCode(65 + answerIndex)}. ${answer[0]}`);
+  });
+
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  })
+    .then(() => {
+      saveStatus.innerText = "Result saved.";
+    })
+    .catch(() => {
+      saveStatus.innerText = "Result could not be sent. Check the Apps Script deployment.";
+    });
+}
+
+showStart();
+</script>
+
+</body>
+</html>
